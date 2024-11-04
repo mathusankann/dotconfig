@@ -1,0 +1,37 @@
+#!/usr/bin/env sh
+
+set -o nounset
+set -o errexit
+
+case $# in
+    2)
+        host="$1"
+        port="$2"
+        ;;
+    *)
+        echo >&2 "Usage: port-open <host> <port>"
+        exit 1
+        ;;
+esac
+
+echo >&2 "testing $host:$port"
+
+set +o errexit
+timeout 1 bash -c "</dev/tcp/$host/$port"
+state="$?"
+set -o errexit
+
+case $state in
+    0)
+        echo >&2 "success"
+        exit 0
+        ;;
+    124)
+        echo >&2 "timeout"
+        exit 1
+        ;;
+    *)
+        echo >&2 "failure (exit code: ${state})"
+        exit 1
+        ;;
+esac
